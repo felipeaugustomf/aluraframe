@@ -60,4 +60,70 @@ class NegociacaoService {
 
     }
 
+    cadastra(negociacao) {
+
+        return ConnectionFactory
+            .getConnection()
+            .then( connection => new NegociacaoDao(connection) )
+            .then( dao => dao.adiciona(negociacao) )
+            .then( () => 'Negociação adicionada com sucesso' )
+            .catch( erro =>  {
+                console.log(erro);
+                throw new Error('Não foi possível adicionar a negociação');
+            });
+
+    }
+
+    lista() {
+
+        return ConnectionFactory
+            .getConnection()
+            .then( connection => new NegociacaoDao(connection) )
+            .then( dao => dao.listaTodos() )
+            .catch( erro =>  {
+                console.log(erro);
+                throw new Error('Não foi possível obter as negociações');
+            });
+
+    }
+
+    apaga() {
+
+        return ConnectionFactory
+            .getConnection()
+            .then( connection => new NegociacaoDao(connection) )
+            .then( dao => dao.apagaTodos() )
+            .then( () => 'Negociações apagadas com sucesso' )
+            .catch( erro =>  {
+                console.log(erro);
+                throw new Error('Não foi possível apagar as negociações');
+            });
+
+    }
+
+    importa(listaAtual) {
+
+        return Promise.all([
+            
+            this.obterNegociacoesDaSemana(),
+            this.obterNegociacoesDaSemanaAnterior(),
+            this.obterNegociacoesDaSemanaRetrasada()
+        
+        ])
+        .then( negociacoesAnteriores => 
+            negociacoesAnteriores
+            .reduce( (arrayAchatado, array) => arrayAchatado.concat(array), [] )
+            .filter( negociacao =>
+                !listaAtual.some( negociacaoExistente => 
+                    JSON.stringify(negociacao) == JSON.stringify(negociacaoExistente)
+                )  
+            ) 
+        )
+        .catch( erro => {
+           console.log(erro);
+           throw new Error('Não foi possível buscar negociações para importar');
+        });
+
+    }
+
 }
